@@ -1,0 +1,66 @@
+name: Make PDF from Mulboi website link
+
+on:
+  workflow_dispatch:
+    inputs:
+      url_template:
+        description: 'Image URL Template (পৃষ্ঠার জায়গায় Yuki লিখবে)'
+        required: true
+        type: string
+      start_page:
+        description: 'Start Page (যেমন: 1)'
+        required: true
+        type: string
+      end_page:
+        description: 'End Page (যেমন: 100)'
+        required: true
+        type: string
+      pdf_name:
+        description: 'PDF টির নাম (যেমন: Physics_Chapter_1)'
+        required: true
+        type: string
+        default: 'MyBook'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    # ফাইল পুশ করার জন্য এই পারমিশনটি খুবই জরুরি
+    permissions:
+      contents: write 
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install requests img2pdf
+
+      - name: Run Script
+        env:
+          URL_TEMPLATE: ${{ inputs.url_template }}
+          START_PAGE: ${{ inputs.start_page }}
+          END_PAGE: ${{ inputs.end_page }}
+          PDF_NAME: ${{ inputs.pdf_name }}
+        run: python main.py
+
+      - name: Commit and Push PDF to Repository
+        run: |
+          # গিটহাব বট হিসেবে লগিন করা
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # তৈরি হওয়া সব pdf ফাইল অ্যাড করা
+          git add *.pdf
+          
+          # কমিট করা
+          git commit -m "Auto-generated PDF: ${{ inputs.pdf_name }}" || echo "No changes to commit"
+          
+          # রিপোজিটরিতে পুশ করা
+          git push
+          
