@@ -61,6 +61,8 @@ jobs:
           # কমিট করা
           git commit -m "Auto-generated PDF: ${{ inputs.pdf_name }}" || echo "No changes to commit"
           
+          # **নতুন যুক্ত করা লাইন**: পুশ করার আগে সার্ভারের লেটেস্ট ফাইলগুলো সিঙ্ক করে নেওয়া
+          git pull --rebase
+          
           # রিপোজিটরিতে পুশ করা
           git push
-          
