@@ -49,20 +49,9 @@ jobs:
           PDF_NAME: ${{ inputs.pdf_name }}
         run: python main.py
 
-      - name: Commit and Push PDF to Repository
-        run: |
-          # গিটহাব বট হিসেবে লগিন করা
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # তৈরি হওয়া সব pdf ফাইল অ্যাড করা
-          git add *.pdf
-          
-          # কমিট করা
-          git commit -m "Auto-generated PDF: ${{ inputs.pdf_name }}" || echo "No changes to commit"
-          
-          # **নতুন যুক্ত করা লাইন**: পুশ করার আগে সার্ভারের লেটেস্ট ফাইলগুলো সিঙ্ক করে নেওয়া
-          git pull --rebase
-          
-          # রিপোজিটরিতে পুশ করা
-          git push
+      - name: Create Release and Upload PDF
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.pdf_name }}
+          name: Release ${{ inputs.pdf_name }}
+          files: ./*.pdf
