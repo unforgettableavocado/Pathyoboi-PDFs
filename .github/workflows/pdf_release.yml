@@ -34,16 +34,15 @@ jobs:
 
       - name: Download PDF from Google Drive
         run: |
-          gdown --id "${{ github.event.inputs.gdrive_id }}" -O input.pdf
+          # এখানে --id বাদ দেওয়া হয়েছে, সরাসরি আইডি ইনপুট নেবে
+          gdown "${{ github.event.inputs.gdrive_id }}" -O input.pdf
 
       - name: Process PDF (Remove Watermark)
         run: |
-          # আপনার আগের পাইথন ফাইলটি রান হবে
           python clean_pdf.py
 
       - name: Rename Output File
         run: |
-          # পাইথন থেকে তৈরি হওয়া cleaned_book.pdf কে আপনার দেওয়া নামে রিনেম করা হচ্ছে
           mv cleaned_book.pdf "${{ github.event.inputs.output_name }}"
 
       - name: Create Release and Upload
@@ -52,5 +51,6 @@ jobs:
         run: |
           TAG_NAME="v$(date +'%Y.%m.%d-%H%M%S')"
           
-          gh release create "$TAG_NAME
-          
+          gh release create "$TAG_NAME" "${{ github.event.inputs.output_name }}" \
+            --title "PDF Release - ${{ github.event.inputs.output_name }}" \
+            --notes "Automated Watermark and Password Removal."
