@@ -1,10 +1,20 @@
-name: Clean PDF and Upload to Release
+name: Clean PDF and Release
 
 on:
-  workflow_dispatch: # ম্যানুয়ালি রান করার জন্য
+  workflow_dispatch:
+    inputs:
+      gdrive_id:
+        description: 'Google Drive File ID (যেমন: 1A2B3C4D...)'
+        required: true
+        type: string
+      output_name:
+        description: 'নতুন পিডিএফের নাম (যেমন: Physics_1st_Paper.pdf)'
+        required: true
+        default: 'Cleaned_Book.pdf'
+        type: string
 
 permissions:
-  contents: write # রিলিজ তৈরি করার পারমিশন
+  contents: write
 
 jobs:
   build-and-release:
@@ -18,21 +28,29 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install PyMuPDF
-        run: pip install PyMuPDF
+      - name: Install Dependencies
+        run: |
+          pip install PyMuPDF gdown
 
-      - name: Process PDF
-        run: python clean_pdf.py
+      - name: Download PDF from Google Drive
+        run: |
+          gdown --id "${{ github.event.inputs.gdrive_id }}" -O input.pdf
+
+      - name: Process PDF (Remove Watermark)
+        run: |
+          # আপনার আগের পাইথন ফাইলটি রান হবে
+          python clean_pdf.py
+
+      - name: Rename Output File
+        run: |
+          # পাইথন থেকে তৈরি হওয়া cleaned_book.pdf কে আপনার দেওয়া নামে রিনেম করা হচ্ছে
+          mv cleaned_book.pdf "${{ github.event.inputs.output_name }}"
 
       - name: Create Release and Upload
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # বর্তমান সময় অনুযায়ী একটি ট্যাগ তৈরি করা
           TAG_NAME="v$(date +'%Y.%m.%d-%H%M%S')"
           
-          # GitHub CLI ব্যবহার করে রিলিজ তৈরি এবং ফাইল আপলোড
-          gh release create "$TAG_NAME" cleaned_book.pdf \
-            --title "Cleaned PDF - $TAG_NAME" \
-            --notes "Automated Watermark Removal"
-            
+          gh release create "$TAG_NAME
+          
