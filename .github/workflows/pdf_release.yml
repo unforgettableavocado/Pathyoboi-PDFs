@@ -1,0 +1,38 @@
+name: Clean PDF and Upload to Release
+
+on:
+  workflow_dispatch: # ম্যানুয়ালি রান করার জন্য
+
+permissions:
+  contents: write # রিলিজ তৈরি করার পারমিশন
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install PyMuPDF
+        run: pip install PyMuPDF
+
+      - name: Process PDF
+        run: python clean_pdf.py
+
+      - name: Create Release and Upload
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # বর্তমান সময় অনুযায়ী একটি ট্যাগ তৈরি করা
+          TAG_NAME="v$(date +'%Y.%m.%d-%H%M%S')"
+          
+          # GitHub CLI ব্যবহার করে রিলিজ তৈরি এবং ফাইল আপলোড
+          gh release create "$TAG_NAME" cleaned_book.pdf \
+            --title "Cleaned PDF - $TAG_NAME" \
+            --notes "Automated Watermark Removal"
+            
